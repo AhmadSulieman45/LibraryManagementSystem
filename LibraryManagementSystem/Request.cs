@@ -7,67 +7,128 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 namespace LibraryManagementSystem
 {
-
-    public enum Status {
+    public enum RequestType {
         Requested,
         Denied,
+        Reservation,
         Given,
-        Due
+        Due,
+        ReturnDue
     }
 
-    class Request
+    [Serializable]
+    public class Request
     {
         public DateTime GivenDate
-        {
-            get;
-            private set;
-        }
-
-        public DateTime ReqDate
-        {
-            get;
-            private set;
-        }
-
-
-        private User _user;
-        private Book _book;
-        
-        public int UserID
-        {
-            get { return _user.UserId; }
-        }
-
-        public string BookTitle
-        {
-            get { return _book.Title; }
-        }
-
-        public int Id
-        {
-            get;
-            private set;
-        }
-
-        public Status CurrentStatus
         {
             get;
             set;
         }
 
-        public Request(User user, Book book, DateTime date, int reqId)
+        public DateTime ReqDate
+        {
+            get;
+            set;
+        }
+    
+        public DateTime RemindedTime
+        {
+            get;
+            set;
+        }
+
+        public DateTime ReturnDate
+        {
+            get;
+            set;
+        }
+
+        private User _user;
+        private Book _book;
+
+        public User User
+        {
+            get;
+        }
+
+
+        public int UserID
+        {
+            get 
+            { 
+                return _user.UserId;
+            }
+        }
+
+        public string BookTitle
+        {
+            get 
+            { 
+                return _book.Title;
+            }
+        }
+
+        public string Isbn
+        {
+            get 
+            { 
+                return _book.Isbn;
+            }
+        }
+
+        public int Id
+        {
+            get;
+            set;
+        }
+
+        public RequestType CurrentStatus
+        {
+            get;
+            set;
+        } 
+
+        public Request()
+        {
+
+        }
+
+        public Request(User user, Book book, DateTime date, RequestType reqType, int reqId)
         {
             this._user = user;
             this._book = book;
             ReqDate = date;
             Id = reqId;
-            CurrentStatus = Status.Requested;
+            CurrentStatus = reqType;
+            RemindedTime = date;
         }
 
-        public TimeSpan getRemainingTime()
+
+
+        public TimeSpan GetTimeBorrowed()
         {
-            Debug.Assert(CurrentStatus == Status.Denied || CurrentStatus == Status.Requested, "This request should be granted before checking remaining time");
-            return DateTime.Now - GivenDate;
+            Debug.Assert(CurrentStatus == RequestType.Denied || CurrentStatus == RequestType.Requested || CurrentStatus == RequestType.Reservation, "This request should be granted before checking remaining time");
+            return (CurrentStatus == RequestType.ReturnDue ? ReturnDate : DateTime.Now) - GivenDate;
+        }
+
+        public override string ToString()
+        {
+            TimeSpan elapsed = GetTimeBorrowed();
+            if (CurrentStatus == RequestType.Requested || CurrentStatus == RequestType.Reservation)
+            {
+                return $"Book: {BookTitle}, was {(CurrentStatus == RequestType.Reservation ? "Reserved" : "Requested")} on {ReqDate.ToString("dddd, dd MMMM yyyy")}.\n";
+            }
+            else if (CurrentStatus == RequestType.Denied)
+            {
+                return $"Book: {BookTitle}, was requested on {ReqDate.ToString("dddd, dd MMMM yyyy")} and denied.\n";
+            }
+            else if (CurrentStatus == RequestType.Due)
+            {
+                return $"Book: {BookTitle}, is due since {elapsed.TotalDays} days, fine is {(int)(elapsed.TotalDays - Constants.BorrowTime)* Constants.DuePenalty}.\n";
+            }
+            else {
+                return $"Book: {BookTitle}, is borrowed since {(int)(elapsed.TotalDays - Constants.BorrowTime) * Constants.DuePenalty}.\n";
+            }
         }
     }
 }

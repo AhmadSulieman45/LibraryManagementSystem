@@ -6,42 +6,59 @@ using System.Threading.Tasks;
 
 namespace LibraryManagementSystem
 {
-    class Book
+    [Serializable]
+    public class Book
     {
-        
+
         public string Title
         {
             get;
-            private set;
+            set;
         }
 
         public string Isbn
         {
             get;
-            private set;
+            set;
         }
-        
+
         public string Author
         {
             get;
-            private set;
+            set;
         }
 
-        public int PubYear
+        public string PubYear
         {
             get;
-            private set;
+            set;
         }
 
-        private List<string> _genres;
-        public Book(string title, List<string> genres, string isbn, string author, int pubYear)
+        public List<string> Genres {
+            get;
+            set;
+        }
+
+        public Book()
+        {
+
+        }
+
+        public Book(string title, List<string> genres, string isbn, string author, string pubYear)
         {
             Title = title;
-            this._genres = genres;
+            Genres = genres;
             Isbn = isbn;
             Author = author;
             PubYear = pubYear;
         }
-        
+
+
+        public override string ToString()
+        {
+            string gen = String.Join(", ", Genres);
+            return $"Title: {Title}.\nGenres: {gen}.\nAuthor:{Author}.\nPublication Year:{PubYear}\nISBN:{Isbn}.\n";
+        }
+
     }
 }

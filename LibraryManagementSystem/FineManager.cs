@@ -13,27 +13,25 @@ namespace LibraryManagementSystem
         Invalid,
         Empty
     }
-    class FineManager
+
+    public class FineManager
     {
         public Dictionary<int, int> DueFees
         {
             get;
-            private set;
+            set;
         }
 
-        private Dictionary<int, DateTime> _lastSent; // reqId, sent notification Date
-
-        private int GetElapsedInDays(DateTime first, DateTime second)
+        public FineManager()
         {
-            TimeSpan elapsed = second - first;
-            return (int)elapsed.TotalDays;
+            DueFees = new Dictionary<int, int>();
         }
 
         private int CalculateDueFees(Request request)
         {
-            TimeSpan elapsed = request.getRemainingTime();
-            int days = (int)elapsed.TotalDays;
-            return (days - Constants.BorrowTime + 1) * Constants.DuePenalty;
+            TimeSpan elapsed = request.GetTimeBorrowed();
+            int days = (int)Math.Ceiling(elapsed.TotalDays);
+            return (days - Constants.BorrowTime) * Constants.DuePenalty;
         }
 
         public void TrackFees(List<Request> requests) 
@@ -41,7 +39,7 @@ namespace LibraryManagementSystem
             DueFees.Clear();
             foreach (Request req in requests)
             {
-                if (req.CurrentStatus != Status.Due) continue;
+                if (req.CurrentStatus != RequestType.Due && req.CurrentStatus != RequestType.ReturnDue) continue;
                 int fines = CalculateDueFees(req);
 
                 if (!DueFees.ContainsKey(req.UserID))
