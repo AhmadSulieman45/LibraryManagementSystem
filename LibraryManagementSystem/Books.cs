@@ -87,7 +87,7 @@ namespace LibraryManagementSystem
             List<Request> ret = new List<Request>();
             foreach (Request req in Requests)
             {
-                if (req.UserID == user.UserId && (req.CurrentStatus == RequestType.Due || req.CurrentStatus == RequestType.Given))
+                if (req.UserID == user.UserId && (req.CurrentStatus != RequestType.Denied && req.CurrentStatus != RequestType.ReturnDue))
                 {
                     ret.Add(req);
                 }
@@ -170,6 +170,12 @@ namespace LibraryManagementSystem
                 return;
             }
             Requests.RemoveAt(Requests.IndexOf(req));
+            AddBook(req.Book);
+        }
+
+        public void AddCopy(string isbn)
+        {
+            CopiesCount[isbn] += 1;
         }
 
         public void ChangeRequest(Request from, Request to)

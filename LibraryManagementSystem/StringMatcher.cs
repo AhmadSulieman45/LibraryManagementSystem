@@ -10,25 +10,23 @@ namespace LibraryManagementSystem
     {
         static public string Strip(string s)
         { 
-            s = s.Replace(" ", "");
-            s = s.ToLower();
-            return s;
+            return s.Replace(" ", "").ToLower();
         }
 
         static public bool IsMatch(string s, string t)
         {
-            Strip(t);
+            t = Strip(t);
             string[] words = s.Split(' ');
             int cnt = 0;
             foreach (string word in words)
             {
-                if (t.Contains(word))
+                string tw = Strip(word);
+                if (t.Contains(tw))
                 {
-                    cnt += 1;
+                    return true;
                 }
             }
-            int m = s.Length;
-            return cnt >= (m + 2) / 3;
+            return false;
         }
     }
 }

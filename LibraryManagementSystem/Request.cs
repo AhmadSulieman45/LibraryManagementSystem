@@ -25,6 +25,11 @@ namespace LibraryManagementSystem
             set;
         }
 
+        public Book Book
+        {
+            get { return _book; }
+        }
+
         public DateTime ReqDate
         {
             get;
@@ -107,7 +112,9 @@ namespace LibraryManagementSystem
 
         public TimeSpan GetTimeBorrowed()
         {
-            Debug.Assert(CurrentStatus == RequestType.Denied || CurrentStatus == RequestType.Requested || CurrentStatus == RequestType.Reservation, "This request should be granted before checking remaining time");
+            //Debug.Assert(CurrentStatus == RequestType.Denied || CurrentStatus == RequestType.Requested || CurrentStatus == RequestType.Reservation, "This request should be granted before checking remaining time");
+            Debug.WriteLine(GivenDate);
+            Debug.WriteLine(DateTime.Now);
             return (CurrentStatus == RequestType.ReturnDue ? ReturnDate : DateTime.Now) - GivenDate;
         }
 
@@ -122,12 +129,12 @@ namespace LibraryManagementSystem
             {
                 return $"Book: {BookTitle}, was requested on {ReqDate.ToString("dddd, dd MMMM yyyy")} and denied.\n";
             }
-            else if (CurrentStatus == RequestType.Due)
+            else if (CurrentStatus == RequestType.Due || CurrentStatus == RequestType.ReturnDue)
             {
-                return $"Book: {BookTitle}, is due since {elapsed.TotalDays} days, fine is {(int)(elapsed.TotalDays - Constants.BorrowTime)* Constants.DuePenalty}.\n";
+                return $"Book: {BookTitle}, is due since {elapsed.TotalDays} days, fine is {(int)Math.Ceiling(elapsed.TotalDays - Constants.BorrowTime) * Constants.DuePenalty}.\n";
             }
             else {
-                return $"Book: {BookTitle}, is borrowed since {(int)(elapsed.TotalDays - Constants.BorrowTime) * Constants.DuePenalty}.\n";
+                return $"Book: {BookTitle}, is borrowed since {GivenDate}.\n";
             }
         }
     }

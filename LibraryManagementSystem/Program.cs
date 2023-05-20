@@ -140,9 +140,10 @@ namespace LibraryManagementSystem
 
         private static void RemoveBook()
         {
+
             Print("Enter ISBN of book:");
             string isbn = Read();
-            sys.DataBase.DeleteBook(isbn);
+            sys.DeleteBook(isbn);
             Print("Deleted Successfully");
             GoMain();
             MainMenu();
@@ -163,7 +164,7 @@ namespace LibraryManagementSystem
             string g = Read();
             string[] gg = g.Split(',');
             List<string> genres = gg.ToList();
-            sys.DataBase.AddBook(new Book(name, genres, isbn, author, year));
+            sys.AddBook(new Book(name, genres, isbn, author, year));
             Print("Added Successfully");
             GoMain();
             MainMenu();
@@ -178,8 +179,11 @@ namespace LibraryManagementSystem
             int n = users.Count;
             Print("1. Message a user");
             Print("2. Modify a user");
-            Print("3. Go to the main menu");
-            int op = ReadOption(3);
+            Print("3. Add a patreon");
+            Print("4. Add a librarian");
+            Print("5. Delete a user");
+            Print("6. Go to the main menu");
+            int op = ReadOption(6);
             if (op == 1)
             {
                 int idx = ReadOption(n) - 1;
@@ -218,7 +222,34 @@ namespace LibraryManagementSystem
                 Print("Modified Successfully");
                 GoMain();
                 MainMenu();
-            } else
+            } 
+            else if (op == 3)
+            {
+                Register(Role.User);
+                GoMain();
+                MainMenu();
+            } else if (op == 4)
+            {
+                Register(Role.Librarian);
+                GoMain();
+                MainMenu();
+            } else if (op == 5) {
+                while (true)
+                {
+                    int usr = ReadOption(n) - 1;
+                    if (usr == 0)
+                    {
+                        Print("You can't choose yourself");
+                        continue;
+                    }
+                    sys.DeleteUser(users[usr].UserId);
+                    Print("User deleted successfully");
+                    GoMain();
+                    MainMenu();
+                    return;
+                }
+            }
+            else
             {
                 MainMenu();
             }
@@ -228,7 +259,16 @@ namespace LibraryManagementSystem
         {
             Console.Clear();
             Print(sys.GetDueReqs());
-            Print(sys.GetFines());
+            if (sys.GetFines().Count == 0)
+            {
+                Print("No one is due anything.");
+            }
+            foreach (KeyValuePair<int, int> entry in sys.GetFines())
+            {
+                Print($"User {entry.Key} is due: {entry.Value}$.");
+            }
+            GoMain();
+            MainMenu();
         }
 
         private static void SendMessage(User rec)
@@ -271,6 +311,7 @@ namespace LibraryManagementSystem
 
         private static void ListDueRequests()
         {
+            Console.Clear();
             Print(sys.GetDueReqs());
             GoMain();
             MainMenu();
@@ -278,6 +319,7 @@ namespace LibraryManagementSystem
 
         private static void ListReservations()
         {
+            Console.Clear();
             Print(sys.GetRequests(curUser, RequestType.Reservation));
             GoMain();
             MainMenu();
@@ -285,6 +327,7 @@ namespace LibraryManagementSystem
 
         private static void ListBorrowingRequests()
         {
+            Console.Clear();
             List<Request> reqs = sys.DataBase.GetBorrowRequests();
             Print(reqs);
             int n = reqs.Count;
@@ -395,6 +438,7 @@ namespace LibraryManagementSystem
                 else
                 {
                     Print("You already have a copy of this book");
+                    CompleteSearch(books);
                 }
             } else if (op == 2)
             {
@@ -495,6 +539,27 @@ namespace LibraryManagementSystem
         {
             Console.Clear();
             Print(sys.DataBase.TheBooks);
+            if (sys.DataBase.TheBooks.Count == 0)
+            { 
+                GoMain();
+                MainMenu();
+            }
+            if (curUser.Role != Role.User)
+            {
+                Print("1. Add Copy");
+                Print("2. Go to main menu.");
+                int op = ReadOption(2);
+                if (op == 1)
+                {
+                    int n = sys.DataBase.TheBooks.Count;
+                    int idx = ReadOption(n) - 1;
+                    sys.AddCopy(sys.DataBase.TheBooks[idx].Isbn);
+                    Print("added Succesfully");
+                } 
+                if (op == 1) GoMain();
+                MainMenu();
+                return;
+            }
             GoMain();
             MainMenu();
         }
@@ -533,7 +598,7 @@ namespace LibraryManagementSystem
             }
         }
 
-        private static void Register()
+        private static void Register(Role role = Role.User)
         {
 
             while (true)
@@ -550,12 +615,11 @@ namespace LibraryManagementSystem
                 Print("Enter an password (lowercase, uppercase, number, special character):");
                 string password = Read();
 
-                RegisterStatus ret = sys.AddUser(new User(1, name, number, email, password, Role.User));
+                RegisterStatus ret = sys.AddUser(new User(1, name, number, email, password, role));
                 
                 if (ret == RegisterStatus.Success)
                 {
                     Print("Registered Successfully");
-                    WelcomePage();
                     return;
                 }
 
@@ -594,6 +658,7 @@ namespace LibraryManagementSystem
             } else
             {
                 Register();
+                WelcomePage();
             }
         }
 

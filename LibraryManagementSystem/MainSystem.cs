@@ -141,7 +141,7 @@ namespace LibraryManagementSystem
         {
             List<Message> ret = new List<Message>();
             foreach (Message msg in _messages) {
-                if (msg.Receiver == user)
+                if (msg.Receiver.UserId == user.UserId)
                 {
                     ret.Add(msg);
                 }
@@ -204,6 +204,13 @@ namespace LibraryManagementSystem
         public void ReturnBook(Request req)
         {
             _database.ReturnBook(req);
+            _database.AddCopy(req.Book.Isbn);
+            Save(Constants.DataBasePath, _database);
+        }
+
+        public void AddCopy(string isbn)
+        {
+            _database.AddCopy(isbn);
             Save(Constants.DataBasePath, _database);
         }
 
@@ -283,6 +290,8 @@ namespace LibraryManagementSystem
             req.CurrentStatus = RequestType.Given;
             req.GivenDate = DateTime.Now;
             DataBase.ChangeRequest(temp, req);
+
+            Save(Constants.DataBasePath, DataBase);
         }
 
         public List<Book> SearchTitle(string txt)
@@ -295,6 +304,17 @@ namespace LibraryManagementSystem
             return _database.SearchGenre(txt);
         }
 
+        public void AddBook(Book book)
+        {
+            DataBase.AddBook(book);
+            Save(Constants.DataBasePath, DataBase);
+        }
+
+        public void DeleteBook(string isbn)
+        {
+            DataBase.DeleteBook(isbn);
+            Save(Constants.DataBasePath, DataBase);
+        }
         private void Save<T>(string path, T obj)
         {
             using (Stream fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -318,6 +338,7 @@ namespace LibraryManagementSystem
                 _database.DeleteDue(user);
                 return true;
             }
+            Save(Constants.DataBasePath, DataBase);
             return false;
         }
 
@@ -332,6 +353,7 @@ namespace LibraryManagementSystem
         public void GiveLastRequestDate(DateTime date)
         {
             DataBase.Reservations.Last().ReqDate = date;
+            Save(Constants.DataBasePath, DataBase);
         }
 
         ~MainSystem()
